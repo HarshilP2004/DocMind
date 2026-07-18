@@ -77,9 +77,14 @@ class RAGService:
         try:
             response = self.model.generate_content(system_prompt, stream=True)
             for chunk in response:
-                if chunk.text:
-                    # Yield token events
-                    yield f"event: token\ndata: {json.dumps({'token': chunk.text})}\n\n"
+                try:
+                    text_part = chunk.text
+                    if text_part:
+                        # Yield token events
+                        yield f"event: token\ndata: {json.dumps({'token': text_part})}\n\n"
+                except ValueError:
+                    # Ignore final metadata chunks containing no text parts
+                    pass
         except Exception as e:
             print(f"Error generating RAG response: {e}")
             yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
