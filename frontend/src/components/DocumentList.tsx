@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { documentService } from '../services/api';
 import { Document } from '../types';
-import { 
-  UploadCloud, FileText, CheckCircle2, AlertTriangle, 
+import {
+  UploadCloud, FileText, CheckCircle2, AlertTriangle,
   Trash2, Search, Loader2, Eye, ShieldCheck
 } from 'lucide-react';
 
@@ -61,10 +61,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    
+
     setUploadError('');
     setUploading(true);
-    
+
     try {
       // Process one by one for background tasks
       for (let i = 0; i < files.length; i++) {
@@ -90,7 +90,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   const handleDelete = async (docId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Are you sure you want to delete this document? All chunks and extracted metadata will be permanently deleted.')) return;
-    
+
     try {
       await documentService.delete(docId);
       onRefreshDocs();
@@ -160,13 +160,13 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             accept=".pdf,.png,.jpg,.jpeg"
             onChange={(e) => handleFileUpload(e.target.files)}
           />
-          
+
           <UploadCloud className="w-10 h-10 text-slate-500 mb-2 group-hover:text-brand-400" />
           <h4 className="text-sm font-semibold text-slate-300">Upload documents</h4>
           <p className="text-xs text-slate-500 mt-1 text-center">
             Drag and drop files here, or click to browse. Supports PDF, PNG, JPG, or JPEG.
           </p>
-          
+
           {uploading && (
             <div className="mt-4 flex items-center gap-2 text-xs text-brand-400">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -185,7 +185,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col gap-2.5 shadow-sm">
           <h5 className="font-semibold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5 select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-brand-400" />
-            Quick-Import Recruiter Samples
+            Quick-Import Samples
           </h5>
           <p className="text-[11px] text-slate-500 -mt-1 leading-normal select-none">
             No files handy? Import these pre-set documents to test out document intelligence and RAG queries instantly.
@@ -253,11 +253,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                 </tr>
               ) : (
                 documents.map((doc) => (
-                  <tr 
+                  <tr
                     key={doc.id}
-                    className={`hover:bg-slate-800/10 transition ${
-                      selectedDocs.includes(doc.id) ? 'bg-brand-500/5' : ''
-                    }`}
+                    className={`hover:bg-slate-800/10 transition ${selectedDocs.includes(doc.id) ? 'bg-brand-500/5' : ''
+                      }`}
                   >
                     <td className="p-4 text-center">
                       <input
@@ -278,13 +277,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
-                        doc.status !== 'completed'
-                          ? 'text-slate-500 bg-slate-900/40 border border-slate-800'
-                          : doc.ocr_used
-                            ? 'text-yellow-400 bg-yellow-950/20 border border-yellow-900/30'
-                            : 'text-indigo-400 bg-indigo-950/20 border border-indigo-900/30'
-                      }`}>
+                      <span className={`text-xs px-2 py-0.5 rounded font-semibold ${doc.status !== 'completed'
+                        ? 'text-slate-500 bg-slate-900/40 border border-slate-800'
+                        : doc.ocr_used
+                          ? 'text-yellow-400 bg-yellow-950/20 border border-yellow-900/30'
+                          : 'text-indigo-400 bg-indigo-950/20 border border-indigo-900/30'
+                        }`}>
                         {doc.status !== 'completed' ? 'Pending' : doc.ocr_used ? 'OCR Used' : 'Direct Text'}
                       </span>
                     </td>
