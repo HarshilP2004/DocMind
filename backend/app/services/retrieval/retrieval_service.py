@@ -27,20 +27,44 @@ class RetrievalService:
             query = query.join(DocumentMetadata).filter(DocumentMetadata.doc_type == analysis.doc_type_filter)
             
         # Compile lists of matching IDs based on JSONB metadata filters
-        if analysis.metadata_filters:
+        # 1. Vendor filter
+        if getattr(analysis, "vendor", None):
             filter_applied = True
-            for key, val in analysis.metadata_filters.items():
-                if val is not None:
-                    # Case-insensitive substring match inside JSONB extracted_data
-                    if isinstance(val, str):
-                        query = query.join(DocumentMetadata).filter(
-                            text(f"document_metadata.extracted_data->>'{key}' ILIKE :val_{key}")
-                        ).params({f"val_{key}": f"%{val}%"})
-                    else:
-                        # Numeric match
-                        query = query.join(DocumentMetadata).filter(
-                            text(f"CAST(document_metadata.extracted_data->>'{key}' AS NUMERIC) = :val_{key}")
-                        ).params({f"val_{key}": val})
+            query = query.join(DocumentMetadata).filter(
+                text("document_metadata.extracted_data->>'vendor' ILIKE :vendor")
+            ).params(vendor=f"%{analysis.vendor}%")
+            
+        # 2. Parties filter
+        if getattr(analysis, "parties", None):
+            filter_applied = True
+            query = query.join(DocumentMetadata).filter(
+                text("document_metadata.extracted_data->>'parties' ILIKE :parties")
+            ).params(parties=f"%{analysis.parties}%")
+            
+        # 3. Amount threshold & operator
+        if getattr(analysis, "amount_threshold", None) is not None and getattr(analysis, "amount_operator", None):
+            op = getattr(analysis, "amount_operator")
+            if op in [">", "<", "=", ">=", "<="]:
+                filter_applied = True
+                query = query.join(DocumentMetadata).filter(
+                    text(f"CAST(document_metadata.extracted_data->>'amount' AS NUMERIC) {op} :amount")
+                ).params(amount=analysis.amount_threshold)
+                
+        # 4. Expiry date threshold & operator
+        if getattr(analysis, "expiry_date_threshold", None) and getattr(analysis, "expiry_date_operator", None):
+            op = getattr(analysis, "expiry_date_operator")
+            if op in [">", "<", "=", ">=", "<="]:
+                filter_applied = True
+                query = query.join(DocumentMetadata).filter(
+                    text(f"document_metadata.extracted_data->>'expiry_date' {op} :expiry_date")
+                ).params(expiry_date=analysis.expiry_date_threshold)
+                
+        # 5. GST query filter
+        if getattr(analysis, "gst_mentioned", None):
+            filter_applied = True
+            query = query.join(DocumentMetadata).filter(
+                text("document_metadata.extracted_data->>'gst' IS NOT NULL AND document_metadata.extracted_data->>'gst' != ''")
+            )
                         
         if filter_applied:
             results = query.all()
