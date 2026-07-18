@@ -1,13 +1,13 @@
 import axios from 'axios';
 import { Document, DocumentMetadata, ChatSession, ChatMessage } from '../types';
 
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api/v1';
 
 // Generate or retrieve persistent visitor ID
 let visitorId = localStorage.getItem('docmind_visitor_id');
 if (!visitorId) {
-  visitorId = crypto.randomUUID 
-    ? crypto.randomUUID() 
+  visitorId = crypto.randomUUID
+    ? crypto.randomUUID()
     : Math.random().toString(36).substring(2) + Date.now().toString(36);
   localStorage.setItem('docmind_visitor_id', visitorId);
 }
@@ -82,7 +82,7 @@ export const chatService = {
     const res = await apiClient.get<{ limit: number, used: number, remaining: number }>('/chat/limit-status');
     return res.data;
   },
-  
+
   // Custom SSE Stream Reader for Chat Queries
   async streamQuery(
     query: string,
@@ -115,40 +115,40 @@ export const chatService = {
           if (errData?.detail) {
             errorMsg = errData.detail;
           }
-        } catch (e) {}
+        } catch (e) { }
         throw new Error(errorMsg);
       }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder('utf-8');
-      
+
       if (!reader) {
         throw new Error('ReadableStream not supported in this browser.');
       }
 
       let buffer = '';
-      
+
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        
+
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
-        
+
         // Save the last partial line back to the buffer
         buffer = lines.pop() || '';
-        
+
         let currentEvent = '';
-        
+
         for (const line of lines) {
           const trimmed = line.trim();
           if (!trimmed) continue;
-          
+
           if (trimmed.startsWith('event: ')) {
             currentEvent = trimmed.replace('event: ', '').trim();
           } else if (trimmed.startsWith('data: ')) {
             const dataStr = trimmed.replace('data: ', '').trim();
-            
+
             if (currentEvent === 'citations') {
               try {
                 const citations = JSON.parse(dataStr);
@@ -176,7 +176,7 @@ export const chatService = {
           }
         }
       }
-      
+
       onDone();
     } catch (error: any) {
       onError(error?.message || 'Network stream error.');
