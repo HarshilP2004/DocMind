@@ -1,0 +1,23 @@
+# Docker Ignore File
+
+# Ignore virtual environments
+**/venv
+**/env
+**/.venv
+**/ENV
+
+# Ignore node modules
+**/node_modules
+
+# Ignore git logs and settings
+.git
+.gitignore
+.dockerignore
+
+# Ignore database mounts and uploads
+postgres_data
+uploads
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

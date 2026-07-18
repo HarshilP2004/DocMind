@@ -1,0 +1,39 @@
+# Environment variables
+.env
+.env*.local
+
+# Python ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Node/Frontend ignores
+node_modules/
+dist/
+dist-ssr/
+.eslintcache
+.vite-inspect
+
+# Local Upload storage directory
+backend/uploads/
+uploads/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
