@@ -23,7 +23,27 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [importingSample, setImportingSample] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportSample = async (filename: string, displayName: string) => {
+    setUploadError('');
+    setImportingSample(displayName);
+    try {
+      const response = await fetch(`/samples/${filename}`);
+      if (!response.ok) {
+        throw new Error(`Failed to retrieve sample file: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      await documentService.upload(file);
+      onRefreshDocs();
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to import sample PDF.');
+    } finally {
+      setImportingSample(null);
+    }
+  };
 
   // Poll for document status updates if any document is currently indexing
   useEffect(() => {
@@ -160,6 +180,45 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             {uploadError}
           </div>
         )}
+
+        {/* Quick Import Samples Panel */}
+        <div className="p-4 bg-slate-900/40 border border-slate-800 rounded-2xl flex flex-col gap-2.5 shadow-sm">
+          <h5 className="font-semibold text-slate-200 text-xs uppercase tracking-wider flex items-center gap-1.5 select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-400" />
+            Quick-Import Recruiter Samples
+          </h5>
+          <p className="text-[11px] text-slate-500 -mt-1 leading-normal select-none">
+            No files handy? Import these pre-set documents to test out document intelligence and RAG queries instantly.
+          </p>
+          <div className="grid grid-cols-1 gap-2 mt-1">
+            {[
+              { file: 'Gemini_Generated_Image_4ypj9l4ypj9l4ypj.pdf', label: 'Medical Report', desc: 'Patient Info (OCR + Classification)' },
+              { file: 'Gemini_Generated_Image_i95fkki95fkki95f.pdf', label: 'Employment Contract', desc: 'Signing Parties & Governing Law' },
+              { file: 'Gemini_Generated_Image_bj3exybj3exybj3e.pdf', label: 'Store Receipt', desc: 'Merchant, Items list & Total Value' },
+              { file: 'pdfpage.pdf', label: 'Platform Manual', desc: 'Technical documentation & metadata' }
+            ].map((sample) => (
+              <button
+                key={sample.file}
+                type="button"
+                disabled={uploading || importingSample !== null}
+                onClick={() => handleImportSample(sample.file, sample.label)}
+                className="flex flex-col items-start p-2.5 bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 rounded-xl text-left transition select-none disabled:opacity-40 cursor-pointer"
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="text-xs font-semibold text-slate-300">{sample.label}</span>
+                  {importingSample === sample.label ? (
+                    <span className="text-[10px] text-brand-400 flex items-center gap-1 animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Importing
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-500 uppercase font-mono">Import</span>
+                  )}
+                </div>
+                <span className="text-[10px] text-slate-500 mt-0.5">{sample.desc}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="p-4 bg-slate-800/30 border border-slate-800 rounded-2xl text-xs text-slate-400">
           <h5 className="font-semibold text-slate-300 mb-1 flex items-center gap-1">
