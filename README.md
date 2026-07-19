@@ -4,6 +4,26 @@ DocMind is a production-grade AI-powered Document Intelligence platform. It allo
 
 ---
 
+## 🗺 System Architecture & Processing Flow
+
+```mermaid
+graph TD
+    A[Upload Document: PDF, Image, etc.] --> B{Is selectable PDF?}
+    B -->|Yes| C[Direct text layout extraction]
+    B -->|No| D[OpenCV Image preprocessing]
+    D --> E[PaddleOCR / Multimodal Gemini scan]
+    C --> F[Intelligent Semantic Chunking]
+    E --> F
+    F --> G[Vector generation via local bge-base-en-v1.5]
+    G --> H[Store chunks & vectors in PostgreSQL pgvector]
+    I[User Chat Query] --> J[Hybrid Search: pgvector + BM25]
+    J --> K[Reciprocal Rank Fusion RRF]
+    K --> L[Local BAAI/bge-reranker-base Cross-Encoder]
+    L --> M[Streaming RAG with Citations via Server-Sent Events]
+```
+
+---
+
 ## Key Features
 
 * **JWT Authentication**: Secure user isolation for uploaded documents, chat history, and semantic indexes.
